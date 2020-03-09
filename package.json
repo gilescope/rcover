@@ -1,5 +1,6 @@
 {
 	"name": "rcover",
+	"publisher": "gilescope",
 	"displayName": "rcover",
 	"description": "Rust Coverage",
 	"version": "0.0.1",
@@ -9,23 +10,60 @@
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+		"Rust",
+		"coverage",
+		"cover",
+		"grcov",
+		"lcov"
+	],
+	"repository": {
+		"url": "https://github.com/gilescope/rcover"
+	},
+	"homepage": "https://github.com/gilescope/rcover",
+	"bugs": {
+		"url": "https://github.com/gilescope/rcover/issues"
+	},
 	"activationEvents": [
-		"onCommand:extension.helloWorld"
+		"onCommand:extension.generateRustCoverage"
 	],
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
+				"command": "extension.generateRustCoverage",
+				"title": "Generate Rust Coverage"
 			}
-		]
+		],
+		"configuration": {
+			"title": "RCover",
+			"properties": {
+				"rcover.grcovPath": {
+					"type": "string",
+					"default": "grcov",
+					"description": "Path to grcov. (cargo install grcov, which grcov)"
+				},
+				"rcover.cleanCommand": {
+					"type": "string",
+					"default": "cargo clean",
+					"description": "Command for a clean build. (defaults to cargo clean)"
+				},
+				"rcover.testCommand": {
+					"type": "string",
+					"default": "cargo test",
+					"description": "Command to build and test. (defaults to cargo test)"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"lint": "eslint .",
 		"pretest": "npm run lint",
 		"test": "node ./test/runTest.js"
 	},
+	"extensionDependencies": [
+		"markis.code-coverage"
+	],
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^7.0.1",
@@ -36,5 +74,8 @@
 		"mocha": "^7.0.1",
 		"typescript": "^3.7.5",
 		"vscode-test": "^1.3.0"
+	},
+	"dependencies": {
+		"vsce": "^1.74.0"
 	}
 }
