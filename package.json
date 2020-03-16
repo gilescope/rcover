@@ -62,7 +62,7 @@
 		"test": "node ./test/runTest.js"
 	},
 	"extensionDependencies": [
-		"markis.code-coverage"
+		"ryanluker.vscode-coverage-gutters"
 	],
 	"devDependencies": {
 		"@types/glob": "^7.1.1",

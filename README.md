@@ -4,15 +4,15 @@ VSCode extension to provide coverage for rust
 
 ## Features
 
-   * Early Days! Needs some PRs to land before it works.
+   * Might work.
 
 ## Requirements
 
-depends on grcov
+depends on grcov. (Will attempt to install it.)
 
 ## Known Issues
 
-   * needs PRs to land before it will work
+   * alpha
 
 ## Release Notes
 
@@ -20,4 +20,3 @@ depends on grcov
 ### 0.0.1
 
 Initial release of rcover
-

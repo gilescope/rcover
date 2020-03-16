@@ -12,7 +12,7 @@ function activate(context) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "rcover" is now active!');
+	//console.log('Congratulations, your extension "rcover" is now active!');
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
@@ -25,6 +25,7 @@ function activate(context) {
 
 		const clean_command = config.has('cleanCommand') && config.get('cleanCommand');;
 		const test_command = config.has('testCommand') && config.get('testCommand');;
+		const install_command = "cargo install grcov"; // Pretty fast if already installed.
 
 		let is_release = test_command.includes("--release");
 
@@ -46,40 +47,70 @@ function activate(context) {
 			stdio: ["ignore", "pipe", "pipe"],
 			env: new_env
 		};
-		//TODO: Javascript promises were invented to avoid the below:
-		// Clean to force a rebuild
-		cp.exec(clean_command, options, (err, stdout, stderr) => {
-			console.log('stdout: ' + stdout);
-			console.log('stderr: ' + stderr);
-			if (err) {
-				console.log('error: ' + err);
-			} else {
-				// Compile with correct flags and run tests...
-				cp.exec(test_command, options, (err, stdout, stderr) => {
-					console.log('stdout: ' + stdout);
-					console.log('stderr: ' + stderr);
-					if (err) {
-						vscode.window.showInformationMessage('Coverage: Tests ran but some failed');
-					}
-					// Ensures it's there!
-					cp.exec('mkdir coverage', options, (err, stdout, stderr) => {
+		cp.exec(install_command, options, (err, stdout, stderr) => {
+			//TODO: Javascript promises were invented to avoid the below:
+			// Clean to force a rebuild
+			cp.exec(clean_command, options, (err, stdout, stderr) => {
+				console.log('stdout: ' + stdout);
+				console.log('stderr: ' + stderr);
+				if (err) {
+					console.log('error: ' + err);
+				} else {
+					// Compile with correct flags and run tests...
+					cp.exec(test_command, options, (err, stdout, stderr) => {
+						console.log('stdout: ' + stdout);
+						console.log('stderr: ' + stderr);
+						if (err) {
+							vscode.window.showInformationMessage('Coverage: Tests ran but some failed');
+						}
+						// Ensures it's there!
+						cp.exec('mkdir coverage', options, (err, stdout, stderr) => {
 
-						// run grcov to postprocess output into lcov info format.
-						cp.exec(grcov_location + ' ./target/debug -t lcov --llvm --branch --ignore-not-existing -o ./coverage/lcov-rust.info',
-							options, (err, stdout, stderr) => {
-								console.log('stdout: ' + stdout);
-								console.log('stderr: ' + stderr);
+							const target_dir = is_release ? " ./target/release" : " ./target/debug";
 
-								if (err) {
-									vscode.window.showInformationMessage('Could not generate coverage');
-								}
-							});
+							// run grcov to postprocess output into lcov info format.
+							cp.exec(grcov_location + target_dir + ' -t lcov --llvm --branch --ignore-not-existing -o ./coverage/lcov.info',
+								options, (err, stdout, stderr) => {
+									console.log('stdout: ' + stdout);
+									console.log('stderr: ' + stderr);
+
+									if (err) {
+										vscode.window.showInformationMessage('Could not generate coverage');
+									}
+
+									var gutterExtension = vscode.extensions.getExtension('ryanluker.vscode-coverage-gutters');
+
+									if (gutterExtension.isActive == false) {
+										gutterExtension.activate().then(
+											function () {
+												console.log("Extension activated");
+												// comment next line out for release
+												vscode.commands.executeCommand("extension.displayCoverage");
+											},
+											function () {
+												console.log("Extension activation failed for coverage gutters");
+											}
+										);
+									} else {
+										vscode.commands.executeCommand("extension.displayCoverage");
+									}
+
+									cp.exec(grcov_location + target_dir + ' -t html --llvm --branch --ignore-not-existing -o ./coverage/',
+										options, (err, stdout, stderr) => {
+											console.log('stdout: ' + stdout);
+											console.log('stderr: ' + stderr);
+
+											if (err) {
+												vscode.window.showInformationMessage('Could not generate coverage');
+											}
+										});
+								});
+						});
 					});
-				});
-			}
+				}
+			});
 		});
 	});
-
 	context.subscriptions.push(disposable);
 }
 exports.activate = activate;
